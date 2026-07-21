@@ -1,34 +1,6 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
-import { colors } from '../../shared/theme/colors';
+import React from 'react';
+import { CameraViewerScreen } from '../../features/cameras';
 
-export default function CameraStreamScreen() {
-  const { id } = useLocalSearchParams();
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Camera Stream Screen</Text>
-      <Text style={styles.subtitle}>Camera ID: {id}</Text>
-    </View>
-  );
+export default function CameraViewerRoute() {
+  return <CameraViewerScreen />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: colors.textPrimary,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-});

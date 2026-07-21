@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View, ScrollView, Switch, Pressable } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import ScreenContainer from '../../../shared/components/ScreenContainer';
 import { colors } from '../../../shared/theme/colors';
 import { spacing } from '../../../shared/theme/spacing';
@@ -11,6 +11,7 @@ import { DeviceTypeIcon, DeviceStatusBadge, SwitchControl } from '../components'
 
 export default function DeviceDetailsScreen() {
   const { id } = useLocalSearchParams();
+  const router = useRouter();
   const { getDevice, toggleDevice, toggleSubSwitch } = useDevices();
 
   const device = getDevice(id);
@@ -118,6 +119,13 @@ export default function DeviceDetailsScreen() {
                 <Text style={styles.cameraPlaceholderText}>MOCK SURVEILLANCE FEED STREAM</Text>
                 <Text style={styles.cameraUriText}>{device.cameraUri}</Text>
               </View>
+              
+              <Pressable
+                style={styles.openCameraButton}
+                onPress={() => router.push('/cameras/cam-1')}
+              >
+                <Text style={styles.openCameraButtonText}>Open Surveillance Channel</Text>
+              </Pressable>
             </View>
           )}
 
@@ -279,6 +287,18 @@ const styles = StyleSheet.create({
     marginBottom: spacing.medium,
   },
   scheduleButtonText: {
+    color: colors.primary,
+    fontWeight: typography.weights.bold,
+    fontSize: typography.sizes.body,
+  },
+  openCameraButton: {
+    backgroundColor: colors.surfaceHighlight,
+    padding: spacing.medium,
+    alignItems: 'center',
+    borderTopWidth: borders.width.thin,
+    borderColor: colors.divider,
+  },
+  openCameraButtonText: {
     color: colors.primary,
     fontWeight: typography.weights.bold,
     fontSize: typography.sizes.body,
