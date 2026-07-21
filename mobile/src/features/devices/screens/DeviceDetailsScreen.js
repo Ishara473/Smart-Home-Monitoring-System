@@ -1,17 +1,32 @@
 import React from 'react';
-import { StyleSheet, Text, View, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, Switch, Pressable } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import ScreenContainer from '../../../shared/components/ScreenContainer';
 import { colors } from '../../../shared/theme/colors';
 import { spacing } from '../../../shared/theme/spacing';
 import { typography } from '../../../shared/theme/typography';
 import { borders } from '../../../shared/theme/borders';
-import { getDeviceById } from '../data/deviceMockData';
-import { DeviceTypeIcon, DeviceStatusBadge } from '../components';
+import { useDevices } from '../hooks/useDevices';
+import { DeviceTypeIcon, DeviceStatusBadge, SwitchControl } from '../components';
 
 export default function DeviceDetailsScreen() {
   const { id } = useLocalSearchParams();
-  const device = getDeviceById(id);
+  const { getDevice, toggleDevice, toggleSubSwitch } = useDevices();
+
+  const device = getDevice(id);
+
+  if (!device) {
+    return (
+      <ScreenContainer useSafeArea={true}>
+        <Text style={styles.errorText}>Device not found.</Text>
+      </ScreenContainer>
+    );
+  }
+
+  const isSwitchControlled = 
+    device.isControllable && 
+    device.type !== 'CAMERA' && 
+    device.type !== 'SWITCH_PANEL';
 
   return (
     <ScreenContainer useSafeArea={true} padding={false}>
@@ -57,15 +72,50 @@ export default function DeviceDetailsScreen() {
           </View>
         </View>
 
-        {/* 3. Controls Placeholder Area */}
+        {/* 3. Interactive Controls Section */}
         <View style={styles.controlsSection}>
-          <Text style={styles.sectionTitle}>Device Control Interface</Text>
-          <View style={styles.placeholderBox}>
-            <Text style={styles.placeholderTitle}>Device Controls Placeholder</Text>
-            <Text style={styles.placeholderSubtitle}>
-              Interactive switches, active sliders, and camera video stream frames will appear here when connected to the simulator.
-            </Text>
-          </View>
+          <Text style={styles.sectionTitle}>Device Controls</Text>
+
+          {isSwitchControlled && (
+            <View style={styles.masterControlBox}>
+              <Text style={styles.controlLabel}>Master Power Toggle</Text>
+              <Switch
+                value={device.status === 'ON'}
+                onValueChange={() => toggleDevice(device.id)}
+                trackColor={{ false: colors.divider, true: `${colors.primary}50` }}
+                thumbColor={device.status === 'ON' ? colors.primary : colors.textSecondary}
+              />
+            </View>
+          )}
+
+          {device.type === 'SWITCH_PANEL' && (
+            <View style={styles.multiSwitchContainer}>
+              <Text style={styles.subTitle}>Individually Addressable Gang Unit</Text>
+              {device.switches.map((sw) => (
+                <SwitchControl
+                  key={sw.id}
+                  name={sw.name}
+                  status={sw.status}
+                  onToggle={() => toggleSubSwitch(device.id, sw.id)}
+                />
+              ))}
+            </View>
+          )}
+
+          {device.type === 'CAMERA' && (
+            <View style={styles.cameraBox}>
+              <View style={styles.cameraFeedPlaceholder}>
+                <Text style={styles.cameraPlaceholderText}>MOCK SURVEILLANCE FEED STREAM</Text>
+                <Text style={styles.cameraUriText}>{device.cameraUri}</Text>
+              </View>
+            </View>
+          )}
+
+          {!device.isControllable && device.type !== 'CAMERA' && (
+            <View style={styles.infoBox}>
+              <Text style={styles.infoText}>This device cannot be toggled directly from the dashboard.</Text>
+            </View>
+          )}
         </View>
       </ScrollView>
     </ScreenContainer>
@@ -76,6 +126,12 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: spacing.medium,
     paddingBottom: spacing.xxl,
+  },
+  errorText: {
+    color: colors.status.DISCONNECTED,
+    fontSize: typography.sizes.bodyLarge,
+    textAlign: 'center',
+    marginTop: spacing.large,
   },
   header: {
     flexDirection: 'row',
@@ -115,6 +171,11 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     marginBottom: spacing.medium,
   },
+  subTitle: {
+    color: colors.textSecondary,
+    fontSize: typography.sizes.bodySmall,
+    marginBottom: spacing.small,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -141,26 +202,61 @@ const styles = StyleSheet.create({
   controlsSection: {
     marginVertical: spacing.small,
   },
-  placeholderBox: {
+  masterControlBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.surface,
+    padding: spacing.medium,
+    borderRadius: borders.radius.medium,
     borderWidth: borders.width.thin,
     borderColor: colors.divider,
-    borderStyle: 'dashed',
-    borderRadius: borders.radius.medium,
-    padding: spacing.large,
-    alignItems: 'center',
-    backgroundColor: 'rgba(30, 41, 59, 0.4)',
   },
-  placeholderTitle: {
+  controlLabel: {
     color: colors.textPrimary,
-    fontSize: typography.sizes.titleLarge,
+    fontSize: typography.sizes.bodyLarge,
     fontWeight: typography.weights.bold,
-    marginBottom: spacing.small,
-    textAlign: 'center',
   },
-  placeholderSubtitle: {
+  multiSwitchContainer: {
+    backgroundColor: colors.surface,
+    padding: spacing.medium,
+    borderRadius: borders.radius.medium,
+    borderWidth: borders.width.thin,
+    borderColor: colors.divider,
+  },
+  cameraBox: {
+    backgroundColor: colors.surface,
+    borderRadius: borders.radius.medium,
+    borderWidth: borders.width.thin,
+    borderColor: colors.divider,
+    overflow: 'hidden',
+  },
+  cameraFeedPlaceholder: {
+    height: 180,
+    backgroundColor: '#000000',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.medium,
+  },
+  cameraPlaceholderText: {
+    color: colors.status.ON,
+    fontWeight: typography.weights.bold,
+    letterSpacing: 1,
+    fontSize: typography.sizes.bodySmall,
+  },
+  cameraUriText: {
+    color: colors.textSecondary,
+    fontSize: 10,
+    marginTop: spacing.xs,
+  },
+  infoBox: {
+    padding: spacing.medium,
+    backgroundColor: colors.surfaceHighlight,
+    borderRadius: borders.radius.medium,
+  },
+  infoText: {
     color: colors.textSecondary,
     fontSize: typography.sizes.bodySmall,
-    lineHeight: 18,
     textAlign: 'center',
   },
 });

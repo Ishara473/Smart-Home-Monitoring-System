@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, Pressable } from 'react-native';
+import { StyleSheet, Text, View, Pressable, Switch } from 'react-native';
 import { colors } from '../../../shared/theme/colors';
 import { spacing } from '../../../shared/theme/spacing';
 import { typography } from '../../../shared/theme/typography';
@@ -7,11 +7,23 @@ import { borders } from '../../../shared/theme/borders';
 import { shadows } from '../../../shared/theme/shadows';
 import DeviceTypeIcon from './DeviceTypeIcon';
 import DeviceStatusBadge from './DeviceStatusBadge';
+import { useDevices } from '../hooks/useDevices';
 
 export default function DeviceCard({ device, onPress }) {
+  const { toggleDevice } = useDevices();
+
   if (!device) return null;
 
   const isAlarming = device.status === 'ERROR';
+  const isSwitchControlled = 
+    device.isControllable && 
+    device.type !== 'CAMERA' && 
+    device.type !== 'SWITCH_PANEL';
+
+  const handleToggle = (e) => {
+    // Prevent clicking the switch from triggering card onPress navigation
+    toggleDevice(device.id);
+  };
 
   return (
     <Pressable
@@ -35,7 +47,18 @@ export default function DeviceCard({ device, onPress }) {
         </View>
       </View>
       
-      <DeviceStatusBadge status={device.status} />
+      <View style={styles.rightSection}>
+        {isSwitchControlled ? (
+          <Switch
+            value={device.status === 'ON'}
+            onValueChange={handleToggle}
+            trackColor={{ false: colors.divider, true: `${colors.primary}50` }}
+            thumbColor={device.status === 'ON' ? colors.primary : colors.textSecondary}
+          />
+        ) : (
+          <DeviceStatusBadge status={device.status} />
+        )}
+      </View>
     </Pressable>
   );
 }
@@ -78,5 +101,9 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: typography.sizes.caption,
     marginTop: 2,
+  },
+  rightSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });
