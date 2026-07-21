@@ -5,14 +5,14 @@ import ScreenContainer from '../../../shared/components/ScreenContainer';
 import { colors } from '../../../shared/theme/colors';
 import { spacing } from '../../../shared/theme/spacing';
 import { typography } from '../../../shared/theme/typography';
-import { getFloorById } from '../data/floorMockData';
+import { floorRepository } from '../../../core/repositories/floorRepository';
 import { FloorPlanView, RoomCard } from '../components';
 import { getDevicesByFloor, DeviceCard } from '../../devices';
 
 export default function FloorDetailsScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const floor = getFloorById(id);
+  const floor = floorRepository.getFloorById(id);
   const devices = getDevicesByFloor(floor.id);
 
   return (

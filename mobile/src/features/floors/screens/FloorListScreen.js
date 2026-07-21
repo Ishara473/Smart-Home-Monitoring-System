@@ -5,11 +5,12 @@ import ScreenContainer from '../../../shared/components/ScreenContainer';
 import { colors } from '../../../shared/theme/colors';
 import { spacing } from '../../../shared/theme/spacing';
 import { typography } from '../../../shared/theme/typography';
-import floorMockData from '../data/floorMockData';
+import { floorRepository } from '../../../core/repositories/floorRepository';
 import FloorCard from '../components/FloorCard';
 
 export default function FloorListScreen() {
   const router = useRouter();
+  const floors = floorRepository.getFloors();
 
   const handleFloorSelect = (floorId) => {
     router.push(`/floors/${floorId}`);
@@ -21,7 +22,7 @@ export default function FloorListScreen() {
         <Text style={styles.title}>House Floor Plans</Text>
         <Text style={styles.subtitle}>Select a floor layout to manage devices spatially</Text>
         
-        {floorMockData.map((floor) => (
+        {floors.map((floor) => (
           <FloorCard
             key={floor.id}
             floor={floor}

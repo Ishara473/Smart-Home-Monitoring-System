@@ -5,11 +5,12 @@ import ScreenContainer from '../../../shared/components/ScreenContainer';
 import { colors } from '../../../shared/theme/colors';
 import { spacing } from '../../../shared/theme/spacing';
 import { typography } from '../../../shared/theme/typography';
-import cameraMockData from '../data/cameraMockData';
+import { cameraRepository } from '../../../core/repositories/cameraRepository';
 import CameraCard from '../components/CameraCard';
 
 export default function CameraListScreen() {
   const router = useRouter();
+  const cameras = cameraRepository.getCameras();
 
   return (
     <ScreenContainer useSafeArea={true} padding={false}>
@@ -17,7 +18,7 @@ export default function CameraListScreen() {
         <Text style={styles.title}>Surveillance Cameras</Text>
         <Text style={styles.subtitle}>Select a camera channel to monitor streams</Text>
 
-        {cameraMockData.map((camera) => (
+        {cameras.map((camera) => (
           <CameraCard
             key={camera.id}
             camera={camera}

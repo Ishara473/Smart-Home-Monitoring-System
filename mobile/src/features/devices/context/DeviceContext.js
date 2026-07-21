@@ -1,7 +1,9 @@
 import React, { createContext, useState } from 'react';
-import { deviceMockData as initialDevices } from '../data/deviceMockData';
+import { deviceRepository } from '../../../core/repositories/deviceRepository';
 import { DEVICE_STATUS } from '../../../shared/constants/deviceStatus';
 import { DEVICE_TYPES } from '../../../shared/constants/deviceTypes';
+
+const initialDevices = deviceRepository.getDevices();
 
 export const DeviceContext = createContext({
   devices: [],

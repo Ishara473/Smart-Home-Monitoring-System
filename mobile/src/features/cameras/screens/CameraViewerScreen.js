@@ -6,12 +6,12 @@ import { colors } from '../../../shared/theme/colors';
 import { spacing } from '../../../shared/theme/spacing';
 import { typography } from '../../../shared/theme/typography';
 import { borders } from '../../../shared/theme/borders';
-import { getCameraById } from '../data/cameraMockData';
+import { cameraRepository } from '../../../core/repositories/cameraRepository';
 import { CameraPreview, CameraStatusBadge } from '../components';
 
 export default function CameraViewerScreen() {
   const { id } = useLocalSearchParams();
-  const camera = getCameraById(id);
+  const camera = cameraRepository.getCameraById(id);
 
   return (
     <ScreenContainer useSafeArea={true} padding={false}>
