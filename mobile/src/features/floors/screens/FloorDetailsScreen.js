@@ -1,16 +1,19 @@
 import React from 'react';
 import { StyleSheet, Text, View, ScrollView } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import ScreenContainer from '../../../shared/components/ScreenContainer';
 import { colors } from '../../../shared/theme/colors';
 import { spacing } from '../../../shared/theme/spacing';
 import { typography } from '../../../shared/theme/typography';
 import { getFloorById } from '../data/floorMockData';
 import { FloorPlanView, RoomCard } from '../components';
+import { getDevicesByFloor, DeviceCard } from '../../devices';
 
 export default function FloorDetailsScreen() {
   const { id } = useLocalSearchParams();
+  const router = useRouter();
   const floor = getFloorById(id);
+  const devices = getDevicesByFloor(floor.id);
 
   return (
     <ScreenContainer useSafeArea={true} padding={false}>
@@ -21,9 +24,21 @@ export default function FloorDetailsScreen() {
         {/* Floor Plan Visualization Grid */}
         <FloorPlanView floorId={floor.id} />
 
+        {/* Devices Listing Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Devices on this Floor</Text>
+          {devices.map((device) => (
+            <DeviceCard
+              key={device.id}
+              device={device}
+              onPress={() => router.push(`/devices/${device.id}`)}
+            />
+          ))}
+        </View>
+
         {/* Rooms Listing Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Rooms on this Floor</Text>
+          <Text style={styles.sectionTitle}>Rooms Grid Layout</Text>
           {floor.rooms.map((room) => (
             <RoomCard key={room.id} room={room} />
           ))}
