@@ -1,51 +1,6 @@
-import { StyleSheet, Text, View, Pressable } from 'react-native';
-import { Link } from 'expo-router';
-import { colors } from '../../shared/theme/colors';
+import React from 'react';
+import { FloorListScreen } from '../../features/floors';
 
-export default function FloorsScreen() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Floors Screen</Text>
-      <Text style={styles.subtitle}>Manage House Floors</Text>
-
-      <Link href="/floors/ground-floor" asChild>
-        <Pressable style={styles.button}>
-          <Text style={styles.buttonText}>Open Ground Floor Details</Text>
-        </Pressable>
-      </Link>
-    </View>
-  );
+export default function FloorsIndexRoute() {
+  return <FloorListScreen />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: colors.textPrimary,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginBottom: 24,
-  },
-  button: {
-    backgroundColor: colors.surface,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.divider,
-  },
-  buttonText: {
-    color: colors.primary,
-    fontWeight: '600',
-  },
-});
