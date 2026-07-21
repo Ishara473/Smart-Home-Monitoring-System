@@ -76,6 +76,16 @@ export default function DeviceDetailsScreen() {
         <View style={styles.controlsSection}>
           <Text style={styles.sectionTitle}>Device Controls</Text>
 
+          {/* Schedule Configuration Link */}
+          {(device.type === 'LIGHT' || device.type === 'IRON') && (
+            <Pressable
+              style={styles.scheduleButton}
+              onPress={() => router.push('/schedules')}
+            >
+              <Text style={styles.scheduleButtonText}>Configure Schedules & Safety Limits</Text>
+            </Pressable>
+          )}
+
           {isSwitchControlled && (
             <View style={styles.masterControlBox}>
               <Text style={styles.controlLabel}>Master Power Toggle</Text>
@@ -258,5 +268,19 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: typography.sizes.bodySmall,
     textAlign: 'center',
+  },
+  scheduleButton: {
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+    borderWidth: borders.width.thin,
+    borderColor: colors.primary,
+    padding: spacing.medium,
+    borderRadius: borders.radius.medium,
+    alignItems: 'center',
+    marginBottom: spacing.medium,
+  },
+  scheduleButtonText: {
+    color: colors.primary,
+    fontWeight: typography.weights.bold,
+    fontSize: typography.sizes.body,
   },
 });
