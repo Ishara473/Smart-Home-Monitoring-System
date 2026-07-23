@@ -3,6 +3,9 @@ import FloorSummaryCard from './FloorSummaryCard';
 import DeviceStatusSummary from './DeviceStatusSummary';
 import SafetyAlertCard from './SafetyAlertCard';
 import QuickStatusCard from './QuickStatusCard';
+import GreetingCard from './GreetingCard';
+import QuickActions from './QuickActions';
+import RecentActivity from './RecentActivity';
 
 export {
   HomeOverviewCard,
@@ -10,6 +13,9 @@ export {
   DeviceStatusSummary,
   SafetyAlertCard,
   QuickStatusCard,
+  GreetingCard,
+  QuickActions,
+  RecentActivity,
 };
 
 export default {
@@ -18,4 +24,7 @@ export default {
   DeviceStatusSummary,
   SafetyAlertCard,
   QuickStatusCard,
+  GreetingCard,
+  QuickActions,
+  RecentActivity,
 };

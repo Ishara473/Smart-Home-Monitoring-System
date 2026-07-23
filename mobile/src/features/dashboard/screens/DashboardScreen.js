@@ -5,17 +5,19 @@ import ScreenContainer from '../../../shared/components/ScreenContainer';
 import { colors } from '../../../shared/theme/colors';
 import { spacing } from '../../../shared/theme/spacing';
 import { typography } from '../../../shared/theme/typography';
-import dashboardMockData from '../data/dashboardMockData';
+import { useDashboard } from '../hooks/useDashboard';
 import {
+  GreetingCard,
   HomeOverviewCard,
   FloorSummaryCard,
-  DeviceStatusSummary,
   SafetyAlertCard,
-  QuickStatusCard,
+  QuickActions,
+  RecentActivity,
 } from '../components';
 
 export default function DashboardScreen() {
   const router = useRouter();
+  const { dashboardData } = useDashboard();
 
   const handleFloorPress = (floorId) => {
     router.push(`/floors/${floorId}`);
@@ -32,26 +34,29 @@ export default function DashboardScreen() {
           Real-time monitoring & safety management
         </Text>
 
-        {/* 1. Home Overview */}
-        <HomeOverviewCard homeInfo={dashboardMockData.homeOverview} />
+        {/* 1. Dynamic greeting and profile status */}
+        <GreetingCard />
 
-        {/* 2. Device Status Distribution Summary */}
-        <DeviceStatusSummary
-          statusSummary={dashboardMockData.deviceStatusSummary}
-        />
+        {/* 2. Quick navigation shortcuts */}
+        <QuickActions />
 
-        {/* 3. Safety Alerts Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Active Safety Alerts</Text>
-          {dashboardMockData.safetyAlerts.map((alert) => (
-            <SafetyAlertCard key={alert.id} alert={alert} />
-          ))}
-        </View>
+        {/* 3. Home Overview statistics grid */}
+        <HomeOverviewCard homeInfo={dashboardData.homeOverview} />
 
-        {/* 4. Floor Summary Section */}
+        {/* 4. Active Safety Alerts Section */}
+        {dashboardData.safetyAlerts && dashboardData.safetyAlerts.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Active Safety Alerts</Text>
+            {dashboardData.safetyAlerts.map((alert) => (
+              <SafetyAlertCard key={alert.id} alert={alert} />
+            ))}
+          </View>
+        )}
+
+        {/* 5. Floor Summary Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>House Floors Overview</Text>
-          {dashboardMockData.floorsSummary.map((floor) => (
+          {dashboardData.floorsSummary.map((floor) => (
             <FloorSummaryCard
               key={floor.id}
               floor={floor}
@@ -60,8 +65,8 @@ export default function DashboardScreen() {
           ))}
         </View>
 
-        {/* 5. System Quick Status */}
-        <QuickStatusCard quickStatus={dashboardMockData.quickStatus} />
+        {/* 6. Scrollable Recent Activity logs */}
+        <RecentActivity activities={dashboardData.recentActivity} />
       </ScrollView>
     </ScreenContainer>
   );

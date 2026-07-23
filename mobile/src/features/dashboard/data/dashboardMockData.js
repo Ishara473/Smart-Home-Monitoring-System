@@ -4,11 +4,13 @@ export const dashboardMockData = {
     floorsCount: 2,
     totalDevices: 14,
     activeDevices: 5,
+    totalCameras: 2,
   },
   floorsSummary: [
     {
       id: 'ground-floor',
       name: 'Ground Floor',
+      roomCount: 3,
       deviceCount: 8,
       activeDevicesCount: 3,
       status: 'ON',
@@ -16,6 +18,7 @@ export const dashboardMockData = {
     {
       id: 'first-floor',
       name: 'First Floor',
+      roomCount: 2,
       deviceCount: 6,
       activeDevicesCount: 2,
       status: 'ON',
@@ -43,6 +46,36 @@ export const dashboardMockData = {
       severity: 'MEDIUM',
       timestamp: '14 mins ago',
     },
+  ],
+  recentActivity: [
+    {
+      id: 'act-1',
+      type: 'TOGGLE',
+      deviceName: 'Living Room Light',
+      action: 'Turned ON',
+      timestamp: '5 mins ago',
+    },
+    {
+      id: 'act-2',
+      type: 'SAFETY',
+      deviceName: 'Laundry Iron',
+      action: 'Auto Cutoff Triggered',
+      timestamp: '12 mins ago',
+    },
+    {
+      id: 'act-3',
+      type: 'STATUS',
+      deviceName: 'Garage Gate Lock',
+      action: 'Locked',
+      timestamp: '1 hr ago',
+    },
+    {
+      id: 'act-4',
+      type: 'CONNECT',
+      deviceName: 'Kitchen smart Outlet',
+      action: 'Connected',
+      timestamp: '2 hrs ago',
+    }
   ],
   quickStatus: {
     security: 'ARMED',

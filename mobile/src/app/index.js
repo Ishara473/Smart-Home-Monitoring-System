@@ -1,34 +1,6 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
+import React from 'react';
+import { Redirect } from 'expo-router';
 
-export default function Home() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Smart Home Monitoring System</Text>
-      <Text style={styles.subtitle}>Mobile Application Foundation</Text>
-      <StatusBar style="light" />
-    </View>
-  );
+export default function IndexRedirect() {
+  return <Redirect href="/(tabs)" />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0f172a',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#f8fafc',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#94a3b8',
-    textAlign: 'center',
-  },
-});

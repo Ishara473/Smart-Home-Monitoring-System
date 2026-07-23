@@ -5,6 +5,8 @@ import { spacing } from '../../../shared/theme/spacing';
 import { typography } from '../../../shared/theme/typography';
 import { borders } from '../../../shared/theme/borders';
 
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+
 export default function FloorSummaryCard({ floor, onPress }) {
   if (!floor) return null;
 
@@ -18,15 +20,30 @@ export default function FloorSummaryCard({ floor, onPress }) {
     >
       <View style={styles.leftContainer}>
         <Text style={styles.floorName}>{floor.name}</Text>
-        <Text style={styles.deviceCount}>
-          {floor.deviceCount} Devices ({floor.activeDevicesCount} Active)
-        </Text>
+        
+        <View style={styles.metaRow}>
+          <View style={styles.metaItem}>
+            <MaterialCommunityIcons name="home-outline" size={14} color={colors.textSecondary} />
+            <Text style={styles.metaText}>{floor.roomCount || 0} Rooms</Text>
+          </View>
+          
+          <Text style={styles.bullet}>•</Text>
+          
+          <View style={styles.metaItem}>
+            <MaterialCommunityIcons name="devices" size={14} color={colors.textSecondary} />
+            <Text style={styles.metaText}>{floor.deviceCount} Total</Text>
+          </View>
+
+          <Text style={styles.bullet}>•</Text>
+
+          <View style={styles.metaItem}>
+            <MaterialCommunityIcons name="power" size={14} color={colors.status.ON} />
+            <Text style={[styles.metaText, styles.activeColor]}>{floor.activeDevicesCount} Active</Text>
+          </View>
+        </View>
       </View>
       
-      <View style={styles.badgeContainer}>
-        <View style={[styles.statusDot, { backgroundColor: colors.status[floor.status] || colors.status.ON }]} />
-        <Text style={styles.statusText}>{floor.status}</Text>
-      </View>
+      <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textSecondary} />
     </Pressable>
   );
 }
@@ -55,29 +72,25 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.bold,
     marginBottom: spacing.xs,
   },
-  deviceCount: {
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.small,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  metaText: {
     color: colors.textSecondary,
     fontSize: typography.sizes.bodySmall,
   },
-  badgeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(15, 23, 42, 0.6)',
-    paddingHorizontal: spacing.small,
-    paddingVertical: spacing.xs,
-    borderRadius: borders.radius.round,
-    borderWidth: borders.width.thin,
-    borderColor: colors.divider,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: spacing.xs,
-  },
-  statusText: {
-    color: colors.textPrimary,
-    fontSize: typography.sizes.caption,
+  activeColor: {
+    color: colors.status.ON,
     fontWeight: typography.weights.bold,
+  },
+  bullet: {
+    color: colors.textMuted,
   },
 });

@@ -1,37 +1,46 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../../../shared/theme/colors';
 import { spacing } from '../../../shared/theme/spacing';
 import { typography } from '../../../shared/theme/typography';
 import { borders } from '../../../shared/theme/borders';
-import { shadows } from '../../../shared/theme/shadows';
 
 export default function HomeOverviewCard({ homeInfo }) {
   if (!homeInfo) return null;
 
   return (
-    <View style={styles.card}>
+    <View style={styles.container}>
       <Text style={styles.headerTitle}>Home Overview</Text>
       <Text style={styles.homeName}>{homeInfo.name}</Text>
-      
-      <View style={styles.statsContainer}>
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Floors</Text>
+
+      <View style={styles.grid}>
+        {/* Stat 1: Floors */}
+        <View style={styles.statCard}>
+          <MaterialCommunityIcons name="layers" size={20} color={colors.textSecondary} />
           <Text style={styles.statValue}>{homeInfo.floorsCount}</Text>
+          <Text style={styles.statLabel}>Total Floors</Text>
         </View>
-        
-        <View style={styles.divider} />
-        
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Total Devices</Text>
+
+        {/* Stat 2: Total Devices */}
+        <View style={styles.statCard}>
+          <MaterialCommunityIcons name="devices" size={20} color={colors.textSecondary} />
           <Text style={styles.statValue}>{homeInfo.totalDevices}</Text>
+          <Text style={styles.statLabel}>Total Devices</Text>
         </View>
-        
-        <View style={styles.divider} />
-        
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Active Devices</Text>
-          <Text style={[styles.statValue, styles.activeColor]}>{homeInfo.activeDevices}</Text>
+
+        {/* Stat 3: Active Devices */}
+        <View style={[styles.statCard, styles.activeBorder]}>
+          <MaterialCommunityIcons name="power" size={20} color={colors.status.ON} />
+          <Text style={[styles.statValue, styles.activeText]}>{homeInfo.activeDevices}</Text>
+          <Text style={styles.statLabel}>Active Now</Text>
+        </View>
+
+        {/* Stat 4: Cameras */}
+        <View style={styles.statCard}>
+          <MaterialCommunityIcons name="video" size={20} color={colors.textSecondary} />
+          <Text style={styles.statValue}>{homeInfo.totalCameras || 2}</Text>
+          <Text style={styles.statLabel}>Cameras</Text>
         </View>
       </View>
     </View>
@@ -39,14 +48,8 @@ export default function HomeOverviewCard({ homeInfo }) {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: borders.radius.large,
-    padding: spacing.medium,
+  container: {
     marginVertical: spacing.small,
-    borderWidth: borders.width.thin,
-    borderColor: colors.divider,
-    ...shadows.small,
   },
   headerTitle: {
     color: colors.textSecondary,
@@ -58,36 +61,40 @@ const styles = StyleSheet.create({
   },
   homeName: {
     color: colors.textPrimary,
-    fontSize: typography.sizes.headingLarge,
+    fontSize: typography.sizes.titleLarge,
     fontWeight: typography.weights.bold,
     marginBottom: spacing.medium,
   },
-  statsContainer: {
+  grid: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: spacing.medium,
   },
-  statBox: {
+  statCard: {
     flex: 1,
-    alignItems: 'center',
+    minWidth: '45%',
+    backgroundColor: colors.surface,
+    borderRadius: borders.radius.medium,
+    padding: spacing.medium,
+    borderWidth: borders.width.thin,
+    borderColor: colors.divider,
+    alignItems: 'flex-start',
+  },
+  activeBorder: {
+    borderColor: `${colors.status.ON}30`,
+  },
+  statValue: {
+    color: colors.textPrimary,
+    fontSize: typography.sizes.headingMedium,
+    fontWeight: typography.weights.bold,
+    marginTop: spacing.small,
+  },
+  activeText: {
+    color: colors.status.ON,
   },
   statLabel: {
     color: colors.textSecondary,
     fontSize: typography.sizes.caption,
-    fontWeight: typography.weights.medium,
-    marginBottom: spacing.xs,
-  },
-  statValue: {
-    color: colors.textPrimary,
-    fontSize: typography.sizes.headingSmall,
-    fontWeight: typography.weights.bold,
-  },
-  activeColor: {
-    color: colors.status.ON,
-  },
-  divider: {
-    width: borders.width.thin,
-    height: 32,
-    backgroundColor: colors.divider,
+    marginTop: 2,
   },
 });
