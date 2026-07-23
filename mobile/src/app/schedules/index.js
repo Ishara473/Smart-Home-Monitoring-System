@@ -1,6 +1,6 @@
 import React from 'react';
-import { ScheduleManagementScreen } from '../../features/scheduling';
+import { ScheduleListScreen } from '../../features/schedules';
 
 export default function SchedulesIndexRoute() {
-  return <ScheduleManagementScreen />;
+  return <ScheduleListScreen />;
 }
