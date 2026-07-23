@@ -1,6 +1,6 @@
 import React from 'react';
-import { InteractiveFloorScreen } from '../../features/floorMap';
+import { FloorDetailsScreen } from '../../features/floors';
 
 export default function FloorDetailsRoute() {
-  return <InteractiveFloorScreen />;
+  return <FloorDetailsScreen />;
 }

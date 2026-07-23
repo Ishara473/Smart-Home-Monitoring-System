@@ -1,76 +1,115 @@
 import React from 'react';
-import { StyleSheet, Text, View, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import ScreenContainer from '../../../shared/components/ScreenContainer';
+import LoadingIndicator from '../../../shared/components/LoadingIndicator';
+import RoomList from '../components/RoomList';
+import { useFloor } from '../hooks/useFloor';
 import { colors } from '../../../shared/theme/colors';
 import { spacing } from '../../../shared/theme/spacing';
 import { typography } from '../../../shared/theme/typography';
-import { floorRepository } from '../../../core/repositories/floorRepository';
-import { FloorPlanView, RoomCard } from '../components';
-import { getDevicesByFloor, DeviceCard } from '../../devices';
+import { borders } from '../../../shared/theme/borders';
 
 export default function FloorDetailsScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const floor = floorRepository.getFloorById(id);
-  const devices = getDevicesByFloor(floor.id);
+  const { floor, loading, error } = useFloor(id);
+
+  if (loading) {
+    return (
+      <ScreenContainer useSafeArea={true}>
+        <View style={styles.centerContainer}>
+          <LoadingIndicator message="Analyzing floor boundaries..." />
+        </View>
+      </ScreenContainer>
+    );
+  }
+
+  if (error || !floor) {
+    return (
+      <ScreenContainer useSafeArea={true}>
+        <View style={styles.centerContainer}>
+          <Text style={styles.errorText}>{error || 'Floor layout details not found'}</Text>
+          <Pressable
+            style={styles.backButton}
+            onPress={() => router.push('/floors')}
+          >
+            <Text style={styles.backButtonText}>Return to Floor Plans</Text>
+          </Pressable>
+        </View>
+      </ScreenContainer>
+    );
+  }
 
   return (
     <ScreenContainer useSafeArea={true} padding={false}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>{floor.name} Details</Text>
-        <Text style={styles.subtitle}>Spatially monitoring {floor.deviceCount} device nodes</Text>
+      <View style={styles.header}>
+        <Pressable
+          style={styles.navBackLink}
+          onPress={() => router.push('/floors')}
+        >
+          <Text style={styles.navBackLinkText}>← Back to Floor Plans</Text>
+        </Pressable>
+        
+        <Text style={styles.title}>{floor.name} Layout</Text>
+        <Text style={styles.subtitle}>
+          Registered room zones and current active devices count
+        </Text>
+      </View>
 
-        {/* Floor Plan Visualization Grid */}
-        <FloorPlanView floorId={floor.id} />
-
-        {/* Devices Listing Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Devices on this Floor</Text>
-          {devices.map((device) => (
-            <DeviceCard
-              key={device.id}
-              device={device}
-              onPress={() => router.push(`/devices/${device.id}`)}
-            />
-          ))}
-        </View>
-
-        {/* Rooms Listing Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Rooms Grid Layout</Text>
-          {floor.rooms.map((room) => (
-            <RoomCard key={room.id} room={room} />
-          ))}
-        </View>
-      </ScrollView>
+      <RoomList rooms={floor.rooms} />
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollContent: {
-    padding: spacing.medium,
-    paddingBottom: spacing.xxl,
+  header: {
+    paddingHorizontal: spacing.medium,
+    paddingTop: spacing.small,
+    paddingBottom: spacing.xs,
+  },
+  navBackLink: {
+    paddingVertical: spacing.xs,
+    marginBottom: spacing.xs,
+  },
+  navBackLinkText: {
+    color: colors.primary,
+    fontSize: typography.sizes.body,
+    fontWeight: typography.weights.medium,
   },
   title: {
     color: colors.textPrimary,
     fontSize: typography.sizes.headingLarge,
     fontWeight: typography.weights.bold,
-    marginTop: spacing.small,
   },
   subtitle: {
     color: colors.textSecondary,
     fontSize: typography.sizes.body,
-    marginBottom: spacing.medium,
+    marginTop: 2,
   },
-  section: {
-    marginTop: spacing.medium,
+  centerContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.large,
   },
-  sectionTitle: {
-    color: colors.textPrimary,
+  errorText: {
+    color: colors.status.DISCONNECTED,
     fontSize: typography.sizes.titleLarge,
     fontWeight: typography.weights.bold,
-    marginBottom: spacing.small,
+    textAlign: 'center',
+    marginBottom: spacing.large,
+  },
+  backButton: {
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+    borderWidth: borders.width.thin,
+    borderColor: colors.primary,
+    paddingVertical: spacing.small,
+    paddingHorizontal: spacing.medium,
+    borderRadius: borders.radius.small,
+  },
+  backButtonText: {
+    color: colors.primary,
+    fontWeight: typography.weights.bold,
   },
 });

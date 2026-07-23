@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../../../shared/theme/colors';
 import { spacing } from '../../../shared/theme/spacing';
 import { typography } from '../../../shared/theme/typography';
@@ -17,20 +18,22 @@ export default function FloorCard({ floor, onPress }) {
       ]}
       onPress={onPress}
     >
-      <View style={styles.content}>
-        <Text style={styles.floorName}>{floor.name}</Text>
+      <View style={styles.leftContainer}>
+        <View style={styles.iconBox}>
+          <MaterialCommunityIcons name="home-outline" size={24} color={colors.primary} />
+        </View>
         
-        <View style={styles.metaRow}>
-          <Text style={styles.metaText}>{floor.roomCount} Rooms</Text>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={styles.metaText}>{floor.deviceCount} Devices</Text>
+        <View style={styles.textGroup}>
+          <Text style={styles.floorName}>{floor.name}</Text>
+          <View style={styles.statsRow}>
+            <Text style={styles.statText}>Rooms: {floor.roomCount}</Text>
+            <Text style={styles.bullet}>•</Text>
+            <Text style={styles.statText}>Devices: {floor.deviceCount}</Text>
+          </View>
         </View>
       </View>
-      
-      <View style={styles.badge}>
-        <View style={[styles.dot, { backgroundColor: colors.status[floor.status] || colors.status.ON }]} />
-        <Text style={styles.badgeText}>{floor.status}</Text>
-      </View>
+
+      <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textSecondary} />
     </Pressable>
   );
 }
@@ -51,46 +54,39 @@ const styles = StyleSheet.create({
   pressedCard: {
     backgroundColor: colors.surfaceHighlight,
   },
-  content: {
+  leftContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  iconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(59, 130, 246, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  textGroup: {
+    marginLeft: spacing.medium,
     flex: 1,
   },
   floorName: {
     color: colors.textPrimary,
-    fontSize: typography.sizes.titleLarge,
+    fontSize: typography.sizes.bodyLarge,
     fontWeight: typography.weights.bold,
   },
-  metaRow: {
+  statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: spacing.xs,
+    marginTop: 4,
   },
-  metaText: {
+  statText: {
     color: colors.textSecondary,
     fontSize: typography.sizes.bodySmall,
   },
   bullet: {
     color: colors.textMuted,
-    marginHorizontal: spacing.small,
-  },
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(15, 23, 42, 0.6)',
-    paddingHorizontal: spacing.small,
-    paddingVertical: spacing.xs,
-    borderRadius: borders.radius.round,
-    borderWidth: borders.width.thin,
-    borderColor: colors.divider,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: spacing.xs,
-  },
-  badgeText: {
-    color: colors.textPrimary,
-    fontSize: typography.sizes.caption,
-    fontWeight: typography.weights.bold,
+    marginHorizontal: spacing.xs,
   },
 });

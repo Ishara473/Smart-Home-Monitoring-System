@@ -1,53 +1,69 @@
 import React from 'react';
-import { StyleSheet, Text, ScrollView } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import ScreenContainer from '../../../shared/components/ScreenContainer';
+import LoadingIndicator from '../../../shared/components/LoadingIndicator';
+import FloorList from '../components/FloorList';
+import { useFloors } from '../hooks/useFloors';
 import { colors } from '../../../shared/theme/colors';
 import { spacing } from '../../../shared/theme/spacing';
 import { typography } from '../../../shared/theme/typography';
-import { floorRepository } from '../../../core/repositories/floorRepository';
-import FloorCard from '../components/FloorCard';
 
 export default function FloorListScreen() {
   const router = useRouter();
-  const floors = floorRepository.getFloors();
+  const { floors, loading, error } = useFloors();
 
-  const handleFloorSelect = (floorId) => {
+  const handleFloorPress = (floorId) => {
     router.push(`/floors/${floorId}`);
   };
 
   return (
     <ScreenContainer useSafeArea={true} padding={false}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <View style={styles.header}>
         <Text style={styles.title}>House Floor Plans</Text>
-        <Text style={styles.subtitle}>Select a floor layout to manage devices spatially</Text>
-        
-        {floors.map((floor) => (
-          <FloorCard
-            key={floor.id}
-            floor={floor}
-            onPress={() => handleFloorSelect(floor.id)}
-          />
-        ))}
-      </ScrollView>
+        <Text style={styles.subtitle}>Select floor level to view rooms and active appliances</Text>
+      </View>
+
+      {loading ? (
+        <View style={styles.centerContainer}>
+          <LoadingIndicator message="Mapping physical space divisions..." />
+        </View>
+      ) : error ? (
+        <View style={styles.centerContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      ) : (
+        <FloorList floors={floors} onFloorPress={handleFloorPress} />
+      )}
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollContent: {
-    padding: spacing.medium,
-    paddingBottom: spacing.xxl,
+  header: {
+    paddingHorizontal: spacing.medium,
+    paddingTop: spacing.small,
+    paddingBottom: spacing.xs,
   },
   title: {
     color: colors.textPrimary,
     fontSize: typography.sizes.headingLarge,
     fontWeight: typography.weights.bold,
-    marginTop: spacing.small,
   },
   subtitle: {
     color: colors.textSecondary,
     fontSize: typography.sizes.body,
-    marginBottom: spacing.medium,
+    marginTop: 2,
+  },
+  centerContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.large,
+  },
+  errorText: {
+    color: colors.status.DISCONNECTED,
+    fontSize: typography.sizes.body,
+    fontWeight: typography.weights.bold,
   },
 });
