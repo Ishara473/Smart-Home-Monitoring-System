@@ -4,6 +4,7 @@ import DeviceCard from './components/DeviceCard';
 import { deviceMockData, getDeviceById, getDevicesByFloor } from './data/deviceMockData';
 import { DeviceProvider } from './context/DeviceContext';
 import { useDevices } from './hooks/useDevices';
+import { useDevice } from './hooks/useDevice';
 
 export {
   DeviceDetailsScreen,
@@ -14,6 +15,7 @@ export {
   getDevicesByFloor,
   DeviceProvider,
   useDevices,
+  useDevice,
 };
 
 export default {
@@ -25,4 +27,5 @@ export default {
   getDevicesByFloor,
   DeviceProvider,
   useDevices,
+  useDevice,
 };

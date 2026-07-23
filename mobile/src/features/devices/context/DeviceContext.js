@@ -10,6 +10,7 @@ export const DeviceContext = createContext({
   toggleDevice: () => {},
   toggleSubSwitch: () => {},
   updateDeviceStatus: () => {},
+  updateDeviceState: () => {},
   getDevice: () => {},
 });
 
@@ -24,17 +25,23 @@ export function DeviceProvider({ children }) {
     setDevices(prevDevices =>
       prevDevices.map(device => {
         if (device.id !== deviceId) return device;
-        if (!device.isControllable || device.type === DEVICE_TYPES.CAMERA) return device;
+        if (device.type === DEVICE_TYPES.CAMERA) return device;
 
-        const nextStatus = device.status === DEVICE_STATUS.ON ? DEVICE_STATUS.OFF : DEVICE_STATUS.ON;
-        const nextPowerUsage = nextStatus === DEVICE_STATUS.ON
-          ? (device.type === DEVICE_TYPES.IRON ? '1800W' : '12W')
-          : '0W';
+        const nextPower = !device.state.power;
+        const nextStatus = nextPower ? DEVICE_STATUS.ON : DEVICE_STATUS.OFF;
+        const nextPowerConsumption = nextPower
+          ? (device.type === DEVICE_TYPES.IRON ? 1800 : 12)
+          : 0;
 
         return {
           ...device,
           status: nextStatus,
-          powerUsage: nextPowerUsage
+          state: {
+            ...device.state,
+            power: nextPower
+          },
+          powerConsumption: nextPowerConsumption,
+          lastUpdated: new Date().toISOString()
         };
       })
     );
@@ -52,15 +59,15 @@ export function DeviceProvider({ children }) {
           return { ...s, status: nextStatus };
         });
 
-        // Recompute power usage based on active sub-switches (each consumes e.g. 15W)
         const activeCount = updatedSwitches.filter(s => s.status === DEVICE_STATUS.ON).length;
-        const nextPowerUsage = `${activeCount * 15}W`;
+        const nextPowerConsumption = activeCount * 15;
         
         return {
           ...device,
           switches: updatedSwitches,
-          powerUsage: nextPowerUsage,
-          status: activeCount > 0 ? DEVICE_STATUS.ON : DEVICE_STATUS.OFF
+          powerConsumption: nextPowerConsumption,
+          status: activeCount > 0 ? DEVICE_STATUS.ON : DEVICE_STATUS.OFF,
+          lastUpdated: new Date().toISOString()
         };
       })
     );
@@ -70,7 +77,36 @@ export function DeviceProvider({ children }) {
     setDevices(prevDevices =>
       prevDevices.map(device => {
         if (device.id !== deviceId) return device;
-        return { ...device, status };
+        return {
+          ...device,
+          status,
+          lastUpdated: new Date().toISOString()
+        };
+      })
+    );
+  };
+
+  const updateDeviceState = (deviceId, stateChanges) => {
+    setDevices(prevDevices =>
+      prevDevices.map(device => {
+        if (device.id !== deviceId) return device;
+
+        const nextState = {
+          ...device.state,
+          ...stateChanges
+        };
+
+        let nextStatus = device.status;
+        if (stateChanges.hasOwnProperty('power')) {
+          nextStatus = stateChanges.power ? DEVICE_STATUS.ON : DEVICE_STATUS.OFF;
+        }
+
+        return {
+          ...device,
+          state: nextState,
+          status: nextStatus,
+          lastUpdated: new Date().toISOString()
+        };
       })
     );
   };
@@ -80,6 +116,7 @@ export function DeviceProvider({ children }) {
     toggleDevice,
     toggleSubSwitch,
     updateDeviceStatus,
+    updateDeviceState,
     getDevice,
   };
 

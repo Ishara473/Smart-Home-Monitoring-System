@@ -42,7 +42,7 @@ export default function DeviceCard({ device, onPress }) {
             {device.name}
           </Text>
           <Text style={styles.room}>
-            {device.room}
+            {device.location?.room || 'General'}
           </Text>
         </View>
       </View>

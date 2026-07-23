@@ -2,37 +2,27 @@ import { DEVICE_TYPES } from '../../../shared/constants/deviceTypes';
 import { DEVICE_STATUS } from '../../../shared/constants/deviceStatus';
 
 /**
- * Creates a normalized device object structure.
+ * Creates a normalized IoT device object structure matching real device configurations.
  */
 export function createDevice({
   id,
   name,
   type = DEVICE_TYPES.LIGHT,
-  status = DEVICE_STATUS.OFF,
-  room = 'General',
-  floor = 'Ground Floor',
-  isControllable = true,
-  powerUsage = 0,
-  schedule = null,
-  maxOnDuration = null,
-  switches = [],
-  cameraUri = null,
-  lastUpdated = null,
+  location = { room: 'General', floor: 'ground-floor' },
+  status = DEVICE_STATUS.ONLINE,
+  state = {},
+  powerConsumption = 0,
+  lastUpdated = new Date().toISOString(),
   ...extra
 }) {
   return {
     id,
     name,
     type,
+    location,
     status,
-    room,
-    floor,
-    isControllable,
-    powerUsage,
-    schedule,
-    maxOnDuration,
-    switches,
-    cameraUri,
+    state,
+    powerConsumption,
     lastUpdated,
     ...extra
   };
