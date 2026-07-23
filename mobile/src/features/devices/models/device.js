@@ -17,6 +17,7 @@ export function createDevice({
   maxOnDuration = null,
   switches = [],
   cameraUri = null,
+  lastUpdated = null,
   ...extra
 }) {
   return {
@@ -32,6 +33,7 @@ export function createDevice({
     maxOnDuration,
     switches,
     cameraUri,
+    lastUpdated,
     ...extra
   };
 }
