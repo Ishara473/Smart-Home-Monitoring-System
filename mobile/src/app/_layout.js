@@ -26,6 +26,8 @@ export default function RootLayout() {
               <Stack.Screen name="schedules/[id]" options={{ title: 'Schedule Details' }} />
               <Stack.Screen name="cameras/index" options={{ title: 'Cameras List' }} />
               <Stack.Screen name="cameras/[id]" options={{ title: 'Camera Stream' }} />
+              <Stack.Screen name="notifications/index" options={{ title: 'Notifications' }} />
+              <Stack.Screen name="notifications/[id]" options={{ title: 'Notification Details' }} />
             </Stack>
           </ScheduleProvider>
         </DeviceProvider>
