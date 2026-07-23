@@ -1,49 +1,69 @@
 import React from 'react';
-import { StyleSheet, Text, ScrollView } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import ScreenContainer from '../../../shared/components/ScreenContainer';
+import LoadingIndicator from '../../../shared/components/LoadingIndicator';
+import CameraList from '../components/CameraList';
+import { useCameras } from '../hooks/useCameras';
 import { colors } from '../../../shared/theme/colors';
 import { spacing } from '../../../shared/theme/spacing';
 import { typography } from '../../../shared/theme/typography';
-import { cameraRepository } from '../../../core/repositories/cameraRepository';
-import CameraCard from '../components/CameraCard';
 
 export default function CameraListScreen() {
   const router = useRouter();
-  const cameras = cameraRepository.getCameras();
+  const { cameras, loading, error } = useCameras();
+
+  const handleCameraPress = (cameraId) => {
+    router.push(`/cameras/${cameraId}`);
+  };
 
   return (
     <ScreenContainer useSafeArea={true} padding={false}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Surveillance Cameras</Text>
-        <Text style={styles.subtitle}>Select a camera channel to monitor streams</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>Surveillance Channels</Text>
+        <Text style={styles.subtitle}>Configure and monitor live closed circuit camera feeds</Text>
+      </View>
 
-        {cameras.map((camera) => (
-          <CameraCard
-            key={camera.id}
-            camera={camera}
-            onPress={() => router.push(`/cameras/${camera.id}`)}
-          />
-        ))}
-      </ScrollView>
+      {loading ? (
+        <View style={styles.centerContainer}>
+          <LoadingIndicator message="Connecting to local DVR channel decoder..." />
+        </View>
+      ) : error ? (
+        <View style={styles.centerContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      ) : (
+        <CameraList cameras={cameras} onCameraPress={handleCameraPress} />
+      )}
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollContent: {
-    padding: spacing.medium,
-    paddingBottom: spacing.xxl,
+  header: {
+    paddingHorizontal: spacing.medium,
+    paddingTop: spacing.small,
+    paddingBottom: spacing.xs,
   },
   title: {
     color: colors.textPrimary,
     fontSize: typography.sizes.headingLarge,
     fontWeight: typography.weights.bold,
-    marginTop: spacing.small,
   },
   subtitle: {
     color: colors.textSecondary,
     fontSize: typography.sizes.body,
-    marginBottom: spacing.medium,
+    marginTop: 2,
+  },
+  centerContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.large,
+  },
+  errorText: {
+    color: colors.status.DISCONNECTED,
+    fontSize: typography.sizes.body,
+    fontWeight: typography.weights.bold,
   },
 });

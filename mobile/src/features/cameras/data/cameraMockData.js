@@ -2,24 +2,24 @@ import { createCamera } from '../models/camera';
 
 export const cameraMockData = [
   createCamera({
-    id: 'cam-1',
+    id: 'camera-front-gate',
     deviceId: 'dev-camera-1',
     name: 'Front Gate Security Camera',
-    location: 'Garage Entrance',
-    status: 'ONLINE',
+    location: { room: 'Garage Entrance', floor: 'Ground Floor' },
+    state: { streaming: false, recording: false, motionDetection: true },
     snapshotUri: 'https://images.unsplash.com/photo-1558002038-1055907df827?auto=format&fit=crop&w=400&q=80',
     streamUri: 'mock://camera/front-gate',
-    lastUpdated: '1s ago'
+    lastUpdated: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
   }),
   createCamera({
-    id: 'cam-2',
+    id: 'camera-backyard',
     deviceId: 'dev-camera-2',
     name: 'Backyard Garden Camera',
-    location: 'Backyard Patio',
-    status: 'DISCONNECTED',
-    snapshotUri: null,
-    streamUri: null,
-    lastUpdated: '14 mins ago'
+    location: { room: 'Patio', floor: 'Ground Floor' },
+    state: { streaming: true, recording: true, motionDetection: true },
+    snapshotUri: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=400&q=80',
+    streamUri: 'mock://camera/backyard',
+    lastUpdated: new Date(Date.now() - 5 * 60 * 1000).toISOString()
   })
 ];
 

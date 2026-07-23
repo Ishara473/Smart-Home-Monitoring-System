@@ -12,44 +12,68 @@ export default function CameraPreview({ camera }) {
 
   if (!camera) return null;
 
-  const isUnavailable = camera.status === 'DISCONNECTED' || camera.status === 'OFFLINE' || imageError;
+  const isOnline = camera.status === 'ONLINE';
+  const isStreaming = camera.state?.streaming ?? false;
+  const isUnavailable = !isOnline || !isStreaming || imageError;
 
   return (
     <View style={styles.container}>
       {isUnavailable ? (
         <View style={styles.fallbackContainer}>
-          <MaterialCommunityIcons name="video-off-outline" size={48} color={colors.status.DISCONNECTED} />
-          <Text style={styles.fallbackTitle}>Camera unavailable</Text>
+          <MaterialCommunityIcons
+            name={!isOnline ? 'video-off-outline' : 'alert-circle-outline'}
+            size={48}
+            color={!isOnline ? colors.status.DISCONNECTED : colors.textSecondary}
+          />
+          <Text style={styles.fallbackTitle}>
+            {!isOnline ? 'Camera Offline' : 'Feed Offline'}
+          </Text>
           <Text style={styles.fallbackSubtitle}>
-            {imageError ? 'Invalid stream snapshot payload' : 'Appliance is disconnected from cloud server'}
+            {!isOnline
+              ? 'Appliance is disconnected from local smart hub'
+              : 'Streaming is stopped. Enable feed to start live view.'}
           </Text>
         </View>
       ) : (
         <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: camera.snapshotUri }}
-            style={styles.image}
-            onLoadStart={() => setLoading(true)}
-            onLoadEnd={() => setLoading(false)}
-            onError={() => {
-              setImageError(true);
-              setLoading(false);
-            }}
-            resizeMode="cover"
-          />
-          {loading && (
+          {camera.snapshotUri ? (
+            <Image
+              source={{ uri: camera.snapshotUri }}
+              style={styles.image}
+              onLoadStart={() => setLoading(true)}
+              onLoadEnd={() => setLoading(false)}
+              onError={() => {
+                setImageError(true);
+                setLoading(false);
+              }}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={styles.noSnapshotView}>
+              <MaterialCommunityIcons name="video" size={48} color="#a855f7" />
+              <Text style={styles.noSnapshotTitle}>CAMERA FEED ACTIVE</Text>
+              <Text style={styles.noSnapshotSubtitle}>Live feed stream placeholder</Text>
+            </View>
+          )}
+
+          {loading && camera.snapshotUri && (
             <View style={styles.loader}>
-              <ActivityIndicator size="large" color={colors.primary} />
+              <ActivityIndicator size="large" color="#a855f7" />
             </View>
           )}
           
-          {/* Overlay Status info */}
+          {/* Overlay Status Live Info */}
           <View style={styles.liveOverlay}>
             <View style={styles.liveIndicator}>
-              <View style={[styles.dot, { backgroundColor: colors.status.ON }]} />
-              <Text style={styles.liveText}>LIVE STREAM</Text>
+              <View style={[styles.dot, { backgroundColor: '#ef4444' }]} />
+              <Text style={styles.liveText}>LIVE FEED</Text>
             </View>
           </View>
+
+          {/* Custom watermark / feed info */}
+          <Text style={styles.watermarkText}>
+            {camera.name.toUpperCase()} • {new Date().toLocaleDateString()}
+          </Text>
         </View>
       )}
     </View>
@@ -58,14 +82,15 @@ export default function CameraPreview({ camera }) {
 
 const styles = StyleSheet.create({
   container: {
-    height: 200,
-    backgroundColor: '#000000',
+    height: 220,
+    backgroundColor: '#05070a',
     borderRadius: borders.radius.medium,
     borderWidth: borders.width.thin,
     borderColor: colors.divider,
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
+    marginVertical: spacing.small,
   },
   fallbackContainer: {
     alignItems: 'center',
@@ -81,17 +106,35 @@ const styles = StyleSheet.create({
   fallbackSubtitle: {
     color: colors.textSecondary,
     fontSize: typography.sizes.bodySmall,
-    marginTop: 2,
+    marginTop: 4,
     textAlign: 'center',
   },
   imageContainer: {
     width: '100%',
     height: '100%',
     position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   image: {
     width: '100%',
     height: '100%',
+  },
+  noSnapshotView: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noSnapshotTitle: {
+    color: '#a855f7',
+    fontSize: typography.sizes.body,
+    fontWeight: typography.weights.bold,
+    marginTop: spacing.small,
+    letterSpacing: 1,
+  },
+  noSnapshotSubtitle: {
+    color: colors.textSecondary,
+    fontSize: typography.sizes.caption,
+    marginTop: 4,
   },
   loader: {
     position: 'absolute',
@@ -105,16 +148,18 @@ const styles = StyleSheet.create({
   },
   liveOverlay: {
     position: 'absolute',
-    top: spacing.small,
-    left: spacing.small,
+    top: spacing.medium,
+    left: spacing.medium,
   },
   liveIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    backgroundColor: 'rgba(15, 23, 42, 0.8)',
     paddingHorizontal: spacing.small,
     paddingVertical: spacing.xs,
-    borderRadius: borders.radius.round,
+    borderRadius: borders.radius.small,
+    borderWidth: borders.width.thin,
+    borderColor: '#ef4444',
   },
   dot: {
     width: 6,
@@ -123,9 +168,16 @@ const styles = StyleSheet.create({
     marginRight: spacing.xs,
   },
   liveText: {
-    color: colors.textPrimary,
+    color: '#ef4444',
     fontSize: 9,
     fontWeight: typography.weights.bold,
-    letterSpacing: 0.5,
+  },
+  watermarkText: {
+    position: 'absolute',
+    bottom: spacing.small,
+    right: spacing.medium,
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontSize: 9,
+    fontFamily: 'monospace',
   },
 });

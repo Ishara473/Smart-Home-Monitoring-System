@@ -6,17 +6,25 @@ import { typography } from '../../../shared/theme/typography';
 import { borders } from '../../../shared/theme/borders';
 
 export default function CameraStatusBadge({ status }) {
-  let badgeColor = colors.status.OFF;
-  if (status === 'ONLINE') {
-    badgeColor = colors.status.ON;
-  } else if (status === 'DISCONNECTED') {
-    badgeColor = colors.status.DISCONNECTED;
-  }
+  const getBadgeConfig = () => {
+    switch (status) {
+      case 'ONLINE':
+        return { color: '#10b981', label: 'ONLINE' };
+      case 'RECORDING':
+        return { color: '#ef4444', label: 'RECORDING' };
+      case 'OFFLINE':
+      case 'DISCONNECTED':
+      default:
+        return { color: colors.textSecondary, label: 'OFFLINE' };
+    }
+  };
+
+  const { color, label } = getBadgeConfig();
 
   return (
-    <View style={[styles.badge, { backgroundColor: `${badgeColor}20`, borderColor: badgeColor }]}>
-      <View style={[styles.dot, { backgroundColor: badgeColor }]} />
-      <Text style={[styles.text, { color: badgeColor }]}>{status}</Text>
+    <View style={[styles.badge, { backgroundColor: `${color}15`, borderColor: color }]}>
+      <View style={[styles.dot, { backgroundColor: color }]} />
+      <Text style={[styles.text, { color }]}>{label}</Text>
     </View>
   );
 }
@@ -29,6 +37,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     borderRadius: borders.radius.round,
     borderWidth: borders.width.thin,
+    alignSelf: 'flex-start',
   },
   dot: {
     width: 6,
@@ -37,7 +46,9 @@ const styles = StyleSheet.create({
     marginRight: spacing.xs,
   },
   text: {
-    fontSize: typography.sizes.caption,
+    fontSize: 9,
     fontWeight: typography.weights.bold,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 });

@@ -1,19 +1,25 @@
-import CameraViewerScreen from './screens/CameraViewerScreen';
+import CameraDetailsScreen from './screens/CameraDetailsScreen';
 import CameraListScreen from './screens/CameraListScreen';
 import { cameraMockData, getCameraById, getCameraByDeviceId } from './data/cameraMockData';
+import { useCameras } from './hooks/useCameras';
+import { useCamera } from './hooks/useCamera';
 
 export {
-  CameraViewerScreen,
+  CameraDetailsScreen,
   CameraListScreen,
   cameraMockData,
   getCameraById,
-  getCameraByDeviceId
+  getCameraByDeviceId,
+  useCameras,
+  useCamera,
 };
 
 export default {
-  CameraViewerScreen,
+  CameraDetailsScreen,
   CameraListScreen,
   cameraMockData,
   getCameraById,
-  getCameraByDeviceId
+  getCameraByDeviceId,
+  useCameras,
+  useCamera,
 };

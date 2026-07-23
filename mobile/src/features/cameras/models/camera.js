@@ -1,22 +1,27 @@
+/**
+ * Creates a normalized camera device capabilities model.
+ */
 export function createCamera({
   id,
   deviceId,
   name,
-  location,
-  status = 'ONLINE', // 'ONLINE' | 'OFFLINE' | 'DISCONNECTED'
+  location = { room: 'Garage', floor: 'Ground Floor' },
+  state = { streaming: true, recording: false, motionDetection: true },
   snapshotUri = null,
   streamUri = null,
-  lastUpdated = 'Just now'
+  lastUpdated = new Date().toISOString(),
+  ...extra
 }) {
   return {
     id,
     deviceId,
     name,
     location,
-    status,
+    state,
     snapshotUri,
     streamUri,
-    lastUpdated
+    lastUpdated,
+    ...extra
   };
 }
 

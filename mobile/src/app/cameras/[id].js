@@ -1,6 +1,6 @@
 import React from 'react';
-import { CameraViewerScreen } from '../../features/cameras';
+import { CameraDetailsScreen } from '../../features/cameras';
 
-export default function CameraViewerRoute() {
-  return <CameraViewerScreen />;
+export default function CameraDetailsRoute() {
+  return <CameraDetailsScreen />;
 }

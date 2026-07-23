@@ -65,6 +65,17 @@ export const deviceMockData = [
     lastUpdated: getPastTimestampISO(24 * 60 * 60 * 1000)
   }),
   createDevice({
+    id: 'dev-camera-2',
+    name: 'Backyard Garden Camera',
+    type: DEVICE_TYPES.CAMERA,
+    status: DEVICE_STATUS.ON,
+    location: { room: 'Patio', floor: 'ground-floor' },
+    state: { power: true },
+    powerConsumption: 8,
+    cameraUri: 'mock://camera/backyard',
+    lastUpdated: getPastTimestampISO(5 * 60 * 1000)
+  }),
+  createDevice({
     id: 'dev-fan-1',
     name: 'Living Room Smart Fan',
     type: 'FAN',

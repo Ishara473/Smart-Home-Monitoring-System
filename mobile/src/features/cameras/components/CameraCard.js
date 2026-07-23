@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, Image, Pressable } from 'react-native';
+import { StyleSheet, Text, View, Pressable } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../../../shared/theme/colors';
 import { spacing } from '../../../shared/theme/spacing';
@@ -12,6 +12,7 @@ export default function CameraCard({ camera, onPress }) {
   if (!camera) return null;
 
   const isOnline = camera.status === 'ONLINE';
+  const isStreaming = camera.state?.streaming ?? false;
 
   return (
     <Pressable
@@ -21,26 +22,30 @@ export default function CameraCard({ camera, onPress }) {
       ]}
       onPress={onPress}
     >
-      <View style={styles.thumbnailContainer}>
-        {isOnline && camera.snapshotUri ? (
-          <Image source={{ uri: camera.snapshotUri }} style={styles.thumbnail} />
-        ) : (
-          <View style={styles.fallbackThumbnail}>
-            <MaterialCommunityIcons
-              name={isOnline ? 'video' : 'video-off'}
-              size={20}
-              color={isOnline ? colors.primary : colors.status.DISCONNECTED}
-            />
+      <View style={styles.leftContainer}>
+        <View style={[styles.iconBox, { backgroundColor: isOnline ? 'rgba(168, 85, 247, 0.12)' : colors.divider }]}>
+          <MaterialCommunityIcons
+            name={isOnline ? 'video' : 'video-off'}
+            size={22}
+            color={isOnline ? '#a855f7' : colors.textSecondary}
+          />
+        </View>
+
+        <View style={styles.textGroup}>
+          <Text style={styles.name} numberOfLines={1}>{camera.name}</Text>
+          <Text style={styles.roomText}>{camera.location?.room || 'General'}</Text>
+          
+          <View style={styles.statusRow}>
+            <CameraStatusBadge status={camera.status} />
+            <Text style={styles.bullet}>•</Text>
+            <Text style={[styles.streamLabel, isStreaming ? styles.streamActive : styles.streamInactive]}>
+              {isStreaming ? 'Streaming' : 'Feed Offline'}
+            </Text>
           </View>
-        )}
+        </View>
       </View>
 
-      <View style={styles.info}>
-        <Text style={styles.name} numberOfLines={1}>{camera.name}</Text>
-        <Text style={styles.location}>{camera.location}</Text>
-      </View>
-
-      <CameraStatusBadge status={camera.status} />
+      <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textSecondary} />
     </Pressable>
   );
 }
@@ -53,6 +58,7 @@ const styles = StyleSheet.create({
     marginVertical: spacing.small,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     borderWidth: borders.width.thin,
     borderColor: colors.divider,
     ...shadows.small,
@@ -60,36 +66,51 @@ const styles = StyleSheet.create({
   pressedCard: {
     backgroundColor: colors.surfaceHighlight,
   },
-  thumbnailContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: borders.radius.small,
-    backgroundColor: '#000000',
-    overflow: 'hidden',
+  leftContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-  },
-  thumbnail: {
-    width: '100%',
-    height: '100%',
-  },
-  fallbackThumbnail: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  info: {
     flex: 1,
-    marginLeft: spacing.medium,
     marginRight: spacing.small,
+  },
+  iconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  textGroup: {
+    marginLeft: spacing.medium,
+    flex: 1,
   },
   name: {
     color: colors.textPrimary,
     fontSize: typography.sizes.bodyLarge,
     fontWeight: typography.weights.bold,
   },
-  location: {
+  roomText: {
     color: colors.textSecondary,
-    fontSize: typography.sizes.caption,
+    fontSize: typography.sizes.bodySmall,
     marginTop: 2,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.xs,
+    gap: spacing.xs,
+  },
+  bullet: {
+    color: colors.textMuted,
+    marginHorizontal: 2,
+  },
+  streamLabel: {
+    fontSize: typography.sizes.caption,
+    fontWeight: typography.weights.medium,
+  },
+  streamActive: {
+    color: '#a855f7',
+  },
+  streamInactive: {
+    color: colors.textSecondary,
   },
 });
