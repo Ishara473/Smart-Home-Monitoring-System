@@ -20,6 +20,7 @@ lerna-debug.log*
 .env.production.local
 *.env
 *.env.*
+!.env.example
 
 # Firebase Configuration & Credentials
 firebase-debug.log*
