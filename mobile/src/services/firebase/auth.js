@@ -3,9 +3,9 @@ import { app } from './firebaseConfig';
 
 /**
  * Firebase Authentication instance.
- * Authentication logic and providers will be implemented in subsequent phases.
+ * Safe null guard ensures app stability when Firebase credentials are not yet configured.
  */
-const auth = getAuth(app);
+const auth = app ? getAuth(app) : null;
 
 export { auth };
 export default auth;

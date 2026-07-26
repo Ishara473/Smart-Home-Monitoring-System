@@ -3,9 +3,9 @@ import { app } from './firebaseConfig';
 
 /**
  * Firebase Storage instance.
- * File upload/download functionality (e.g. camera snapshots, media assets) will be implemented in subsequent phases.
+ * Safe null guard ensures app stability when Firebase credentials are not yet configured.
  */
-const storage = getStorage(app);
+const storage = app ? getStorage(app) : null;
 
 export { storage };
 export default storage;

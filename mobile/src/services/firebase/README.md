@@ -1,6 +1,6 @@
 # Firebase Infrastructure - Smart Home Monitoring System
 
-This module establishes the foundational Firebase service layer and configuration management for the Smart Home Monitoring System React Native application.
+This module establishes the foundational Firebase service layer, defensive environment validation, and configuration management for the Smart Home Monitoring System React Native application.
 
 ---
 
@@ -33,64 +33,90 @@ Firebase Repository
 Firestore
 ```
 
-By maintaining strict abstraction boundaries:
-- Presentation screens and hooks interact only with **Repository Interfaces**.
-- Swapping the repository backend (e.g. from Mock to Firebase or SQLite) requires zero changes in the presentation layer.
-
 ---
 
 ## 🛠️ Service Components & Responsibilities
 
 | File | Primary Responsibility |
 | :--- | :--- |
-| `firebaseConfig.js` | Initializes the root Firebase App singleton using Expo environment variables. Prevents duplicate initializations during Fast Refresh. |
-| `firestore.js` | Initializes and exports the Firebase Firestore database instance (`db`). |
-| `auth.js` | Initializes and exports the Firebase Authentication instance (`auth`). |
-| `storage.js` | Initializes and exports the Firebase Storage instance (`storage`). |
-| `index.js` | Provides a unified, centralized barrel export for all Firebase services (`app`, `db`, `auth`, `storage`). |
+| `validateFirebaseConfig.js` | Utility that checks for presence of required `EXPO_PUBLIC_FIREBASE_*` env vars. Logs helpful dev warnings if missing without crashing the application. |
+| `firebaseConfig.js` | Uses validation utility to safely initialize root Firebase App singleton. Prevents duplicate initializations during Fast Refresh. Exports `app`, `isConfigValid`, and `missingKeys`. |
+| `firestore.js` | Exports `db` Firestore database instance with a null guard if `app` is uninitialized. |
+| `auth.js` | Exports `auth` Firebase Authentication instance with a null guard. |
+| `storage.js` | Exports `storage` Firebase Storage instance with a null guard. |
+| `index.js` | Unified barrel export for all Firebase services and validation utilities. |
 
 ---
 
-## 🔐 Environment Variables (`EXPO_PUBLIC_*`)
+## 🔐 Environment Setup Guide
 
-Expo automatically embeds environment variables prefixed with `EXPO_PUBLIC_` into the application bundle at build time.
-
-### Required Environment Variables
-
-```env
-EXPO_PUBLIC_FIREBASE_API_KEY=your-api-key
-EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your-auth-domain.firebaseapp.com
-EXPO_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
-EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=your-storage-bucket.appspot.com
-EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
-EXPO_PUBLIC_FIREBASE_APP_ID=your-app-id
-```
-
-> **Note:** Real credentials will be provided after creating the project in the Firebase Console (Prompt 031). A template file `.env.example` is located in the `mobile/` root directory.
+### 1. Creating a Firebase Project
+1. Navigate to the [Firebase Console](https://console.firebase.google.com/).
+2. Click **Add project** (or **Create a project**).
+3. Enter your project name (e.g., `smart-home-monitoring`).
+4. (Optional) Configure Google Analytics according to project needs.
+5. Click **Create project** and wait for provisioning to finish.
 
 ---
 
-## 🚀 Repository Abstraction & Migration Strategy
+### 2. Obtaining Firebase Configuration Credentials
+1. In the Firebase Console, go to **Project Settings** (gear icon near top-left).
+2. Under the **General** tab, scroll down to **Your apps**.
+3. Select the **Web (`</>`)** platform icon to register a web app.
+4. Enter an app nickname (e.g., `Smart Home Mobile`) and click **Register app**.
+5. Copy the configuration object provided:
+   ```javascript
+   const firebaseConfig = {
+     apiKey: "AIzaSy...",
+     authDomain: "smart-home-monitoring.firebaseapp.com",
+     projectId: "smart-home-monitoring",
+     storageBucket: "smart-home-monitoring.appspot.com",
+     messagingSenderId: "1234567890",
+     appId: "1:1234567890:web:abcdef..."
+   };
+   ```
 
-Repositories are organized by domain under `src/repositories/`:
+---
 
-```text
-src/repositories/
- ├── device/
- │    ├── MockDeviceRepository.js
- │    ├── FirebaseDeviceRepository.js
- │    └── index.js
- ├── floor/
- ├── room/
- ├── camera/
- ├── schedule/
- ├── notification/
- └── report/
- └── index.js (Repository Factory / Central Re-exporter)
+### 3. Populating `.env`
+1. Duplicate `.env.example` to create a local `.env` file inside the `mobile/` directory:
+   ```bash
+   cp .env.example .env
+   ```
+2. Fill in your credentials:
+   ```env
+   EXPO_PUBLIC_FIREBASE_API_KEY=AIzaSy...
+   EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=smart-home-monitoring.firebaseapp.com
+   EXPO_PUBLIC_FIREBASE_PROJECT_ID=smart-home-monitoring
+   EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=smart-home-monitoring.appspot.com
+   EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=1234567890
+   EXPO_PUBLIC_FIREBASE_APP_ID=1:1234567890:web:abcdef...
+   ```
+
+---
+
+### 4. Restarting Expo
+Expo loads `EXPO_PUBLIC_*` environment variables at start time. When creating or modifying `.env`, restart the Expo development server with cache clearing:
+
+```bash
+npx expo start -c
+```
+or
+```bash
+npm start -- -c
 ```
 
-### Migration Steps (Future Phase)
-1. **Phase 1 (Current)**: Establish Firebase infrastructure and placeholder repositories. Keep `src/repositories/index.js` exporting Mock Repositories.
-2. **Phase 2**: Create Firebase Console project & design Firestore collections.
-3. **Phase 3**: Implement Firestore query logic inside `Firebase<Domain>Repository.js` files.
-4. **Phase 4**: Switch exports in `src/repositories/<domain>/index.js` from `Mock<Domain>Repository` to `Firebase<Domain>Repository`.
+---
+
+## 🧪 Verification Checklists
+
+### Before `.env` Population (Current Phase)
+- ✅ App starts and bundles successfully without crashing.
+- ✅ Clear dev console warning appears listing missing `EXPO_PUBLIC_FIREBASE_*` keys.
+- ✅ `db === null`, `auth === null`, `storage === null`.
+- ✅ All existing UI screens, hooks, and mock data function normally.
+
+### After `.env` Population (Prompt 031B)
+- ✅ Expo bundles successfully without any console warnings.
+- ✅ `isConfigValid === true`.
+- ✅ `db`, `auth`, and `storage` initialize correctly as valid Firebase SDK instances.

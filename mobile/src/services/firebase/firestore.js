@@ -3,9 +3,9 @@ import { app } from './firebaseConfig';
 
 /**
  * Firebase Firestore database instance.
- * Decoupled service layer ready for future Firestore queries and real-time synchronization.
+ * Safe null guard ensures app stability when Firebase credentials are not yet configured.
  */
-const db = getFirestore(app);
+const db = app ? getFirestore(app) : null;
 
 export { db };
 export default db;
