@@ -1,9 +1,10 @@
-import React, { createContext, useState } from 'react';
-import { deviceRepository } from '../../../core/repositories/deviceRepository';
+import React, { createContext, useState, useEffect } from 'react';
+import { deviceRepository as mockDeviceRepository } from '../../../core/repositories/deviceRepository';
+import { deviceRepository as firebaseDeviceRepository } from '../../../services/firebase/repositories';
+import { shouldUseMockData, isFirebaseConfigured } from '../../../services/firebase';
+import { useHomeContext } from '../../home/context/HomeContext';
 import { DEVICE_STATUS } from '../../../shared/constants/deviceStatus';
 import { DEVICE_TYPES } from '../../../shared/constants/deviceTypes';
-
-const initialDevices = deviceRepository.getDevices();
 
 export const DeviceContext = createContext({
   devices: [],
@@ -12,116 +13,135 @@ export const DeviceContext = createContext({
   updateDeviceStatus: () => {},
   updateDeviceState: () => {},
   getDevice: () => {},
+  loading: true,
+  error: null,
 });
 
 export function DeviceProvider({ children }) {
-  const [devices, setDevices] = useState(initialDevices);
+  const { homeId, loading: homeLoading } = useHomeContext();
+  const [devices, setDevices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const getDevice = (deviceId) => {
-    return devices.find(d => d.id === deviceId);
-  };
+  useEffect(() => {
+    if (homeLoading) return;
 
-  const toggleDevice = (deviceId) => {
-    setDevices(prevDevices =>
-      prevDevices.map(device => {
-        if (device.id !== deviceId) return device;
-        if (device.type === DEVICE_TYPES.CAMERA) return device;
+    if (shouldUseMockData()) {
+      setDevices(mockDeviceRepository.getDevices());
+      setLoading(false);
+      return;
+    }
 
-        const nextPower = !device.state.power;
-        const nextStatus = nextPower ? DEVICE_STATUS.ON : DEVICE_STATUS.OFF;
-        const nextPowerConsumption = nextPower
-          ? (device.type === DEVICE_TYPES.IRON ? 1800 : 12)
-          : 0;
+    if (!isFirebaseConfigured() || !homeId) {
+      setDevices([]);
+      setLoading(false);
+      return;
+    }
 
-        return {
-          ...device,
-          status: nextStatus,
-          state: {
-            ...device.state,
-            power: nextPower
-          },
-          powerConsumption: nextPowerConsumption,
-          lastUpdated: new Date().toISOString()
-        };
-      })
-    );
+    setLoading(true);
+    const unsubscribe = firebaseDeviceRepository.subscribeToDevices(homeId, (fetchedDevices) => {
+      setDevices(fetchedDevices);
+      setError(null);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, [homeId, homeLoading]);
+
+  const getDevice = (deviceId) => devices.find(d => d.id === deviceId);
+
+  const toggleDevice = async (deviceId) => {
+    const device = getDevice(deviceId);
+    if (!device || device.type === DEVICE_TYPES.CAMERA) return;
+
+    const nextPower = !device.state.power;
+    const nextStatus = nextPower ? DEVICE_STATUS.ON : DEVICE_STATUS.OFF;
+    const nextPowerConsumption = nextPower ? (device.type === DEVICE_TYPES.IRON ? 1800 : 12) : 0;
+
+    if (shouldUseMockData()) {
+      setDevices(prev => prev.map(d => d.id !== deviceId ? d : {
+        ...d, status: nextStatus,
+        state: { ...d.state, power: nextPower },
+        powerConsumption: nextPowerConsumption,
+        lastUpdated: new Date().toISOString()
+      }));
+      return;
+    }
+
+    try {
+      await firebaseDeviceRepository.updateDeviceState(deviceId, { power: nextPower });
+      await firebaseDeviceRepository.updateDeviceStatus(deviceId, nextStatus);
+    } catch (err) {
+      console.error('[DeviceContext] toggleDevice failed', err);
+      setError('Unable to toggle device. Check your connection.');
+    }
   };
 
   const toggleSubSwitch = (deviceId, switchId) => {
-    setDevices(prevDevices =>
-      prevDevices.map(device => {
-        if (device.id !== deviceId) return device;
-        if (device.type !== DEVICE_TYPES.SWITCH_PANEL) return device;
+    const device = getDevice(deviceId);
+    if (!device || device.type !== DEVICE_TYPES.SWITCH_PANEL) return;
 
-        const updatedSwitches = device.switches.map(s => {
-          if (s.id !== switchId) return s;
-          const nextStatus = s.status === DEVICE_STATUS.ON ? DEVICE_STATUS.OFF : DEVICE_STATUS.ON;
-          return { ...s, status: nextStatus };
-        });
+    const updatedSwitches = device.switches.map(s => {
+      if (s.id !== switchId) return s;
+      const nextStatus = s.status === DEVICE_STATUS.ON ? DEVICE_STATUS.OFF : DEVICE_STATUS.ON;
+      return { ...s, status: nextStatus };
+    });
 
-        const activeCount = updatedSwitches.filter(s => s.status === DEVICE_STATUS.ON).length;
-        const nextPowerConsumption = activeCount * 15;
-        
-        return {
-          ...device,
-          switches: updatedSwitches,
-          powerConsumption: nextPowerConsumption,
-          status: activeCount > 0 ? DEVICE_STATUS.ON : DEVICE_STATUS.OFF,
-          lastUpdated: new Date().toISOString()
-        };
-      })
-    );
+    const activeCount = updatedSwitches.filter(s => s.status === DEVICE_STATUS.ON).length;
+    setDevices(prev => prev.map(d => d.id !== deviceId ? d : {
+      ...d,
+      switches: updatedSwitches,
+      status: activeCount > 0 ? DEVICE_STATUS.ON : DEVICE_STATUS.OFF,
+      powerConsumption: activeCount * 15,
+      lastUpdated: new Date().toISOString()
+    }));
   };
 
-  const updateDeviceStatus = (deviceId, status) => {
-    setDevices(prevDevices =>
-      prevDevices.map(device => {
-        if (device.id !== deviceId) return device;
-        return {
-          ...device,
-          status,
-          lastUpdated: new Date().toISOString()
-        };
-      })
-    );
+  const updateDeviceStatus = async (deviceId, status) => {
+    if (shouldUseMockData()) {
+      setDevices(prev => prev.map(d => d.id !== deviceId ? d : {
+        ...d, status, lastUpdated: new Date().toISOString()
+      }));
+      return;
+    }
+    try {
+      await firebaseDeviceRepository.updateDeviceStatus(deviceId, status);
+    } catch (err) {
+      console.error('[DeviceContext] updateDeviceStatus failed', err);
+      setError('Unable to update device status.');
+    }
   };
 
-  const updateDeviceState = (deviceId, stateChanges) => {
-    setDevices(prevDevices =>
-      prevDevices.map(device => {
-        if (device.id !== deviceId) return device;
-
-        const nextState = {
-          ...device.state,
-          ...stateChanges
-        };
-
-        let nextStatus = device.status;
-        if (stateChanges.hasOwnProperty('power')) {
+  const updateDeviceState = async (deviceId, stateChanges) => {
+    if (shouldUseMockData()) {
+      setDevices(prev => prev.map(d => {
+        if (d.id !== deviceId) return d;
+        const nextState = { ...d.state, ...stateChanges };
+        let nextStatus = d.status;
+        if (Object.prototype.hasOwnProperty.call(stateChanges, 'power')) {
           nextStatus = stateChanges.power ? DEVICE_STATUS.ON : DEVICE_STATUS.OFF;
         }
-
-        return {
-          ...device,
-          state: nextState,
-          status: nextStatus,
-          lastUpdated: new Date().toISOString()
-        };
-      })
-    );
-  };
-
-  const value = {
-    devices,
-    toggleDevice,
-    toggleSubSwitch,
-    updateDeviceStatus,
-    updateDeviceState,
-    getDevice,
+        return { ...d, state: nextState, status: nextStatus, lastUpdated: new Date().toISOString() };
+      }));
+      return;
+    }
+    try {
+      await firebaseDeviceRepository.updateDeviceState(deviceId, stateChanges);
+      if (Object.prototype.hasOwnProperty.call(stateChanges, 'power')) {
+        const nextStatus = stateChanges.power ? DEVICE_STATUS.ON : DEVICE_STATUS.OFF;
+        await firebaseDeviceRepository.updateDeviceStatus(deviceId, nextStatus);
+      }
+    } catch (err) {
+      console.error('[DeviceContext] updateDeviceState failed', err);
+      setError('Unable to update device state.');
+    }
   };
 
   return (
-    <DeviceContext.Provider value={value}>
+    <DeviceContext.Provider value={{
+      devices, toggleDevice, toggleSubSwitch,
+      updateDeviceStatus, updateDeviceState, getDevice,
+      loading, error,
+    }}>
       {children}
     </DeviceContext.Provider>
   );

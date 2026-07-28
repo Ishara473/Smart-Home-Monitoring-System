@@ -2,6 +2,9 @@ import React, { createContext, useState, useEffect } from 'react';
 import { useDevices } from '../../devices';
 import { scheduleMockData } from '../data/scheduleMockData';
 import { checkSafetyBreaches } from '../utils/safetyTimer';
+import { scheduleRepository as firebaseScheduleRepository } from '../../../services/firebase/repositories';
+import { shouldUseMockData, isFirebaseConfigured } from '../../../services/firebase';
+import { useHomeContext } from '../../home/context/HomeContext';
 
 export const ScheduleContext = createContext({
   schedules: [],
@@ -15,62 +18,83 @@ export const ScheduleContext = createContext({
 });
 
 export function ScheduleProvider({ children }) {
-  const [schedules, setSchedules] = useState(scheduleMockData.schedules);
-  const [safetyRules, setSafetyRules] = useState(scheduleMockData.safetyRules);
+  const { homeId, loading: homeLoading } = useHomeContext();
+  const [schedules, setSchedules] = useState([]);
+  const [safetyRules, setSafetyRules] = useState([]);
   const { devices, updateDeviceStatus } = useDevices();
 
-  // Run the background safety timer check on active devices
+  useEffect(() => {
+    if (homeLoading) return;
+
+    if (shouldUseMockData()) {
+      setSchedules(scheduleMockData.schedules);
+      setSafetyRules(scheduleMockData.safetyRules);
+      return;
+    }
+
+    if (!isFirebaseConfigured() || !homeId) return;
+
+    let isMounted = true;
+    firebaseScheduleRepository.getSchedulesByHome(homeId)
+      .then((allSchedules) => {
+        if (!isMounted) return;
+        setSchedules(allSchedules.filter(s => s.scheduleType === 'TIME_TRIGGER' || s.scheduleType === 'TIME_RANGE'));
+        setSafetyRules(allSchedules.filter(s => s.scheduleType === 'SAFETY_RULE'));
+      })
+      .catch(err => console.error('[ScheduleContext] Failed to load schedules', err));
+
+    return () => { isMounted = false; };
+  }, [homeId, homeLoading]);
+
+  // Safety timer — always active
   useEffect(() => {
     const interval = setInterval(() => {
-      checkSafetyBreaches(devices, safetyRules, (deviceId, rule) => {
-        // Trigger automated safety cutoff
+      checkSafetyBreaches(devices, safetyRules, (deviceId) => {
         updateDeviceStatus(deviceId, 'OFF');
-        if (__DEV__) {
-          console.warn(`[SAFETY CUTOFF]: Automatically flipped device ${deviceId} state to OFF.`);
-        }
+        if (__DEV__) console.warn(`[SAFETY CUTOFF]: Device ${deviceId} flipped to OFF.`);
       });
     }, 1000);
-
     return () => clearInterval(interval);
-  }, [devices, safetyRules]);
+  }, [devices, safetyRules, updateDeviceStatus]);
 
-  const createSchedule = (newSchedule) => {
-    setSchedules(prev => [...prev, newSchedule]);
+  const createSchedule = async (newSchedule) => {
+    if (shouldUseMockData()) { setSchedules(prev => [...prev, newSchedule]); return; }
+    try {
+      const id = await firebaseScheduleRepository.createSchedule({ ...newSchedule, homeId });
+      setSchedules(prev => [...prev, { ...newSchedule, id }]);
+    } catch (err) { console.error('[ScheduleContext] createSchedule failed', err); }
   };
 
-  const updateSchedule = (id, updated) => {
+  const updateSchedule = async (id, updated) => {
     setSchedules(prev => prev.map(s => s.id === id ? { ...s, ...updated } : s));
+    if (shouldUseMockData()) return;
+    try { await firebaseScheduleRepository.updateSchedule(id, updated); }
+    catch (err) { console.error('[ScheduleContext] updateSchedule failed', err); }
   };
 
-  const deleteSchedule = (id) => {
+  const deleteSchedule = async (id) => {
     setSchedules(prev => prev.filter(s => s.id !== id));
+    if (shouldUseMockData()) return;
+    try { await firebaseScheduleRepository.deleteSchedule(id); }
+    catch (err) { console.error('[ScheduleContext] deleteSchedule failed', err); }
   };
 
-  const enableSchedule = (id) => {
-    setSchedules(prev => prev.map(s => s.id === id ? { ...s, enabled: true } : s));
-  };
+  const enableSchedule = (id) => updateSchedule(id, { enabled: true });
+  const disableSchedule = (id) => updateSchedule(id, { enabled: false });
 
-  const disableSchedule = (id) => {
-    setSchedules(prev => prev.map(s => s.id === id ? { ...s, enabled: false } : s));
-  };
-
-  const updateSafetyRule = (id, updated) => {
+  const updateSafetyRule = async (id, updated) => {
     setSafetyRules(prev => prev.map(r => r.id === id ? { ...r, ...updated } : r));
-  };
-
-  const value = {
-    schedules,
-    safetyRules,
-    createSchedule,
-    updateSchedule,
-    deleteSchedule,
-    enableSchedule,
-    disableSchedule,
-    updateSafetyRule,
+    if (shouldUseMockData()) return;
+    try { await firebaseScheduleRepository.updateSchedule(id, updated); }
+    catch (err) { console.error('[ScheduleContext] updateSafetyRule failed', err); }
   };
 
   return (
-    <ScheduleContext.Provider value={value}>
+    <ScheduleContext.Provider value={{
+      schedules, safetyRules,
+      createSchedule, updateSchedule, deleteSchedule,
+      enableSchedule, disableSchedule, updateSafetyRule,
+    }}>
       {children}
     </ScheduleContext.Provider>
   );

@@ -1,5 +1,2 @@
-export { app, default as firebaseApp, isConfigValid, missingKeys } from './firebaseConfig';
-export { db } from './firestore';
-export { auth } from './auth';
-export { storage } from './storage';
-export { default as validateFirebaseConfig } from './validateFirebaseConfig';
+export { firebaseConfig, isConfigValid, missingKeys, validateFirebaseConfig, isFirebaseConfigured, shouldUseMockData } from './firebaseConfig.js';
+export { app, db, auth, storage, default as firebaseApp } from './firebaseApp.js';

@@ -1,10 +1,13 @@
+import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '../../../shared/theme/colors';
+import { spacing } from '../../../shared/theme/spacing';
+import { typography } from '../../../shared/theme/typography';
 
 export default function SettingsScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Settings Screen</Text>
+      <Text style={styles.title}>Settings</Text>
       <Text style={styles.subtitle}>System Preferences & Configuration</Text>
     </View>
   );

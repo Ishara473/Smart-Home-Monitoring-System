@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import ScreenContainer from '../../../shared/components/ScreenContainer';
 import LoadingIndicator from '../../../shared/components/LoadingIndicator';
 import RoomList from '../components/RoomList';
 import { useFloor } from '../hooks/useFloor';
+import { roomRepository as firebaseRoomRepository } from '../../../services/firebase/repositories';
+import { shouldUseMockData, isFirebaseConfigured } from '../../../services/firebase';
+import { RoomRepository as MockRoomRepository } from '../../rooms/repository/RoomRepository';
 import { colors } from '../../../shared/theme/colors';
 import { spacing } from '../../../shared/theme/spacing';
 import { typography } from '../../../shared/theme/typography';
@@ -13,9 +16,62 @@ import { borders } from '../../../shared/theme/borders';
 export default function FloorDetailsScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { floor, loading, error } = useFloor(id);
+  const { floor, loading: floorLoading, error: floorError } = useFloor(id);
+  const [rooms, setRooms] = useState([]);
+  const [roomsLoading, setRoomsLoading] = useState(true);
+  const [roomsError, setRoomsError] = useState(null);
 
-  if (loading) {
+  useEffect(() => {
+    if (!id) return;
+
+    if (shouldUseMockData()) {
+      const delay = setTimeout(() => {
+        try {
+          const allRooms = MockRoomRepository.getRooms();
+          const floorRooms = allRooms.filter(room => room.floorId === id);
+          setRooms(floorRooms);
+        } catch (err) {
+          setRoomsError('Failed to load rooms');
+        } finally {
+          setRoomsLoading(false);
+        }
+      }, 500);
+      return () => clearTimeout(delay);
+    }
+
+    if (!isFirebaseConfigured()) {
+      setRooms([]);
+      setRoomsLoading(false);
+      return;
+    }
+
+    // Wait until the floor document is loaded so we have floor.homeId
+    // (required by Firestore security rules that check isHomeMember(homeId))
+    if (!floor) return;
+
+    let isMounted = true;
+    setRoomsLoading(true);
+    setRoomsError(null);
+
+    firebaseRoomRepository.getRoomsByFloor(id, floor.homeId)
+      .then(data => {
+        if (isMounted) {
+          setRooms(data);
+          setRoomsError(null);
+        }
+      })
+      .catch(err => {
+        console.error('[FloorDetailsScreen] Failed to load rooms', err);
+        if (isMounted) setRoomsError('Unable to load rooms');
+      })
+      .finally(() => {
+        if (isMounted) setRoomsLoading(false);
+      });
+
+    return () => { isMounted = false; };
+  }, [id, floor]);
+
+  if (floorLoading || roomsLoading) {
     return (
       <ScreenContainer useSafeArea={true}>
         <View style={styles.centerContainer}>
@@ -25,11 +81,11 @@ export default function FloorDetailsScreen() {
     );
   }
 
-  if (error || !floor) {
+  if (floorError || !floor) {
     return (
       <ScreenContainer useSafeArea={true}>
         <View style={styles.centerContainer}>
-          <Text style={styles.errorText}>{error || 'Floor layout details not found'}</Text>
+          <Text style={styles.errorText}>{floorError || 'Floor layout details not found'}</Text>
           <Pressable
             style={styles.backButton}
             onPress={() => router.push('/floors')}
@@ -50,14 +106,14 @@ export default function FloorDetailsScreen() {
         >
           <Text style={styles.navBackLinkText}>← Back to Floor Plans</Text>
         </Pressable>
-        
+
         <Text style={styles.title}>{floor.name} Layout</Text>
         <Text style={styles.subtitle}>
           Registered room zones and current active devices count
         </Text>
       </View>
 
-      <RoomList rooms={floor.rooms} />
+      <RoomList rooms={rooms} />
     </ScreenContainer>
   );
 }
